@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Remover Pontuações e Identificar</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --text-color: #f1f1f1;
+      --input-bg: #1e1e1e;
+      --input-border: #444;
+      --highlight-color: #4CAF50;
+    }
+
+    body.light {
+      --bg-color: #f9f9f9;
+      --text-color: #121212;
+      --input-bg: #ffffff;
+      --input-border: #ccc;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      text-align: center;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    h1 {
+      color: var(--text-color);
+    }
+
+    textarea {
+      width: 100%;
+      max-width: 600px;
+      height: 150px;
+      font-size: 16px;
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      resize: vertical;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      border: 1px solid var(--input-border);
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px 30px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: var(--highlight-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin: 10px 5px;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    input.resultado-input {
+      width: 100%;
+      max-width: 600px;
+      font-size: 18px;
+      padding: 10px;
+      margin-top: 20px;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      border: 1px solid var(--input-border);
+      border-radius: 5px;
+      text-align: center;
+    }
+
+    .copiado {
+      color: var(--highlight-color);
+      margin-top: 10px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="theme-toggle">
+    <button onclick="alternarTema()">Alternar Tema</button>
+  </div>
+
+  <div class="container">
+    <h1>Digite o CPF ou CNPJ abaixo:</h1>
+    <textarea id="texto" placeholder="Digite aqui..."></textarea>
+    <br/>
+    <button onclick="limparTexto()" id="btnRemover">REMOVER</button>
+
+    <input type="text" id="resultado" class="resultado-input" readonly placeholder="Resultado aparecerá aqui"/>
+    <div id="mensagemCopiado" class="copiado" style="display: none;">Copiado para a área de transferência!</div>
+  </div>
+
+  <script>
+    function limparTexto() {
+      let textoOriginal = document.getElementById("texto").value;
+      let textoLimpo = textoOriginal.replace(/[^0-9]/g, ''); // Remove todos os caracteres não numéricos
+      const resultadoInput = document.getElementById("resultado");
+
+      // Se o texto não tiver pontuações ou traços, formata com pontuação
+      if (textoOriginal.indexOf('.') === -1 && textoOriginal.indexOf('-') === -1 && textoOriginal.indexOf('/') === -1) {
+        formatarDocumento(textoLimpo);
+      } else {
+        resultadoInput.value = textoLimpo; // Apenas números, sem formatação
+      }
+
+      // Seleciona automaticamente o resultado
+      resultadoInput.focus();
+      resultadoInput.select();
+      document.execCommand("copy");
+
+      const msg = document.getElementById("mensagemCopiado");
+      msg.style.display = "block";
+      setTimeout(() => {
+        msg.style.display = "none";
+      }, 2000);
+    }
+
+    function formatarDocumento(texto) {
+      let resultadoInput = document.getElementById("resultado");
+      if (texto.length === 11) {
+        // Formatar CPF com pontuação
+        resultadoInput.value = texto.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+      } else if (texto.length === 14) {
+        // Formatar CNPJ com pontuação
+        resultadoInput.value = texto.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+      } else {
+        resultadoInput.value = texto;
+      }
+    }
+
+    // Aciona o botão ao pressionar Enter
+    document.getElementById("texto").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        document.getElementById("btnRemover").click();
+      }
+    });
+
+    function alternarTema() {
+      document.body.classList.toggle("light");
+      const temaAtual = document.body.classList.contains("light") ? "light" : "dark";
+      localStorage.setItem("temaPreferido", temaAtual);
+    }
+
+    // Carrega o tema preferido do usuário
+    window.onload = function() {
+      const temaSalvo = localStorage.getItem("temaPreferido");
+      if (temaSalvo === "light") {
+        document.body.classList.add("light");
+      }
+    };
+  </script>
+
+</body>
+</html>
